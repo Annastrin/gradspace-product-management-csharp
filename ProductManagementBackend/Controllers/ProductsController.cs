@@ -10,10 +10,12 @@ namespace ProductManagementBackend.Controllers
     public class ProductsController : BaseController
     {
         private readonly ProductManagementContext _context;
+        private readonly IConfiguration _config;
 
-        public ProductsController(ProductManagementContext context)
+        public ProductsController(ProductManagementContext context, IConfiguration config)
         {
             _context = context;
+            _config = config;
         }
 
         // GET: api/Products
@@ -80,17 +82,45 @@ namespace ProductManagementBackend.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<Product>> PostProduct([FromForm] ProductRequest model)
         {
             if (_context.Products == null)
             {
                 return Problem("Entity set 'ProductManagementContext.Products'  is null.");
             }
+
+            string imagePath = SaveImage(model.Image); // Save the image file and get the stored path
+
+            // Create a new product instance
+            Product product = new Product
+            {
+                Title = model.Title,
+                Description = model.Description,
+                Price = model.Price,
+                Image = imagePath // Assuming you have a property named "ImagePath" in the Product model
+            };
+
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
+
+        private string SaveImage(IFormFile imageFile)
+        {
+            // Get the path where you want to store the image
+            var randomName = Path.GetRandomFileName() + "_" + imageFile.FileName;
+            var imagePath = Path.Combine(_config["StoredFilesPath"], randomName);
+
+            // Save the image file to the specified path
+            using (var fileStream = new FileStream(imagePath, FileMode.Create))
+            {
+                imageFile.CopyTo(fileStream);
+            }
+
+            return "/images/" + randomName; // Return the stored image path
+        }
+
 
         // DELETE: api/Products/5
         [HttpDelete("{id}")]

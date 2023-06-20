@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using ProductManagementBackend.Models;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 namespace ProductManagementBackend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class AuthenticateController : ControllerBase
     {
@@ -47,13 +48,13 @@ namespace ProductManagementBackend.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private async Task<User> AuthenticateUser(User login)
+        private async Task<User> AuthenticateUser(LoginUser login)
         {
             User user = null;
 
             //Validate the User Credentials      
             //Demo Purpose, I have Passed HardCoded User Information      
-            if (login.Name == "test@gradspace.org")
+            if (login.Email == "test@gradspace.org")
             {
                 user = new User { Name = "Test", Email = "test@gradspace.org", Password = "qwer1234" };
             }
@@ -62,14 +63,14 @@ namespace ProductManagementBackend.Controllers
 
         [AllowAnonymous]
         [HttpPost(nameof(Login))]
-        public async Task<IActionResult> Login([FromBody] User data)
+        public async Task<IActionResult> Login([FromBody] LoginUser data)
         {
             IActionResult response = Unauthorized();
             var user = await AuthenticateUser(data);
             if (user != null)
             {
                 var tokenString = GenerateJSONWebToken(user);
-                response = Ok(new { Token = tokenString, Message = "Success" });
+                response = Ok(new { Token = tokenString, Message = "Success", User = new { Email = user.Email} });
             }
             return response;
         }
