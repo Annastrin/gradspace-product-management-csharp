@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace ProductManagementBackend.Models;
 
@@ -16,6 +14,8 @@ public partial class ProductManagementContext : DbContext
     }
 
     public virtual DbSet<Product> Products { get; set; }
+
+    public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -33,6 +33,14 @@ public partial class ProductManagementContext : DbContext
             entity.Property(e => e.Title)
                 .HasMaxLength(50)
                 .IsFixedLength();
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name).HasColumnType("text");
+            entity.Property(e => e.Email).HasColumnType("text");
+            entity.Property(e => e.Password).HasColumnType("text");
         });
 
         OnModelCreatingPartial(modelBuilder);

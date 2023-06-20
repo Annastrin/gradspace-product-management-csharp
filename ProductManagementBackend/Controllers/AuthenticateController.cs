@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using ProductManagementBackend.Models;
@@ -34,7 +33,7 @@ namespace ProductManagementBackend.Controllers
         #endregion
 
 
-        private string GenerateJSONWebToken(LoginModel userInfo)
+        private string GenerateJSONWebToken(User userInfo)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -48,22 +47,22 @@ namespace ProductManagementBackend.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private async Task<LoginModel> AuthenticateUser(LoginModel login)
+        private async Task<User> AuthenticateUser(User login)
         {
-            LoginModel user = null;
+            User user = null;
 
             //Validate the User Credentials      
             //Demo Purpose, I have Passed HardCoded User Information      
-            if (login.UserName == "test@gradspace.org")
+            if (login.Name == "test@gradspace.org")
             {
-                user = new LoginModel { UserName = "test@gradspace.org", Password = "qwer1234" };
+                user = new User { Name = "Test", Email = "test@gradspace.org", Password = "qwer1234" };
             }
             return user;
         }
 
         [AllowAnonymous]
         [HttpPost(nameof(Login))]
-        public async Task<IActionResult> Login([FromBody] LoginModel data)
+        public async Task<IActionResult> Login([FromBody] User data)
         {
             IActionResult response = Unauthorized();
             var user = await AuthenticateUser(data);

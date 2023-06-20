@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductManagementBackend.Models;
@@ -26,10 +21,10 @@ namespace ProductManagementBackend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         {
-          if (_context.Products == null)
-          {
-              return NotFound();
-          }
+            if (_context.Products == null)
+            {
+                return NotFound();
+            }
             return await _context.Products.ToListAsync();
         }
 
@@ -37,10 +32,10 @@ namespace ProductManagementBackend.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-          if (_context.Products == null)
-          {
-              return NotFound();
-          }
+            if (_context.Products == null)
+            {
+                return NotFound();
+            }
             var product = await _context.Products.FindAsync(id);
 
             if (product == null)
@@ -87,10 +82,10 @@ namespace ProductManagementBackend.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(Product product)
         {
-          if (_context.Products == null)
-          {
-              return Problem("Entity set 'ProductManagementContext.Products'  is null.");
-          }
+            if (_context.Products == null)
+            {
+                return Problem("Entity set 'ProductManagementContext.Products'  is null.");
+            }
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
 

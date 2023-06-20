@@ -1,9 +1,8 @@
-using ProductManagementBackend.Models;
-using Microsoft.EntityFrameworkCore;
-using ProductManagementBackend.Data;
-using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using ProductManagementBackend.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -72,6 +71,13 @@ builder.Services.AddAuthentication(option =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+
+    SeedData.Initialize(services);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
