@@ -17,7 +17,7 @@ public partial class Product
     public string? Image { get; set; }
 }
 
-public class ProductRequest
+public class ProductRequestPost
 {
     [Required]
     public string Title { get; set; } = null!;
@@ -28,4 +28,15 @@ public class ProductRequest
     public decimal Price { get; set; }
 
     public IFormFile Image { get; set; }
+}
+
+public class ProductRequestPut
+{
+    public string? Title { get; set; }
+
+    public string? Description { get; set; }
+
+    public decimal? Price { get; set; }
+
+    public IFormFile? Image { get; set; }
 }

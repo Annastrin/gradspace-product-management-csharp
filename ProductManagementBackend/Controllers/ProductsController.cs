@@ -51,14 +51,47 @@ namespace ProductManagementBackend.Controllers
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> PutProduct(int id, [FromForm] ProductRequestPut model)
         {
-            if (id != product.Id)
+            var product = await _context.Products.FindAsync(id);
+            Console.WriteLine(model);
+
+            if (product == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
-            _context.Entry(product).State = EntityState.Modified;
+            if (!string.IsNullOrEmpty(model.Title))
+            {
+                product.Title = model.Title;
+            }
+
+            if (model.Price != null)
+            {
+                product.Price = (decimal)model.Price;
+            }
+
+            if (!string.IsNullOrEmpty(model.Description))
+            {
+                product.Description = model.Description;
+            }
+
+
+            if (model.Image != null)
+            {
+                // Check if the product has an existing image
+                if (!string.IsNullOrEmpty(product.Image))
+                {
+                    // Delete the old image file from storage
+                    DeleteImage(product.Image);
+                }
+
+                // Save the new image file to storage
+                string imagePath = SaveImage(model.Image);
+
+                // Update the product with the new image path
+                product.Image = imagePath;
+            }
 
             try
             {
@@ -76,13 +109,13 @@ namespace ProductManagementBackend.Controllers
                 }
             }
 
-            return NoContent();
+            return Ok(product);
         }
 
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct([FromForm] ProductRequest model)
+        public async Task<ActionResult<Product>> PostProduct([FromForm] ProductRequestPost model)
         {
             if (_context.Products == null)
             {
@@ -106,21 +139,6 @@ namespace ProductManagementBackend.Controllers
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
 
-        private string SaveImage(IFormFile imageFile)
-        {
-            // Get the path where you want to store the image
-            var randomName = Path.GetRandomFileName() + "_" + imageFile.FileName;
-            var imagePath = Path.Combine(_config["StoredFilesPath"], randomName);
-
-            // Save the image file to the specified path
-            using (var fileStream = new FileStream(imagePath, FileMode.Create))
-            {
-                imageFile.CopyTo(fileStream);
-            }
-
-            return "/images/" + randomName; // Return the stored image path
-        }
-
 
         // DELETE: api/Products/5
         [HttpDelete("{id}")]
@@ -136,6 +154,12 @@ namespace ProductManagementBackend.Controllers
                 return NotFound();
             }
 
+            if (!string.IsNullOrEmpty(product.Image))
+            {
+                // Delete the old image file from storage
+                DeleteImage(product.Image);
+            }
+
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
 
@@ -145,6 +169,43 @@ namespace ProductManagementBackend.Controllers
         private bool ProductExists(int id)
         {
             return (_context.Products?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        private string SaveImage(IFormFile imageFile)
+        {
+            // Get the path where you want to store the image
+            var randomName = Path.GetRandomFileName() + "_" + imageFile.FileName;
+            string storedFilesPath = _config["StoredFilesPath"];
+
+            if (!Directory.Exists(storedFilesPath))
+            {
+                Directory.CreateDirectory(storedFilesPath);
+            }
+
+            var imagePath = Path.Combine(_config["StoredFilesPath"], randomName);
+
+            // Save the image file to the specified path
+            using (var fileStream = new FileStream(imagePath, FileMode.Create))
+            {
+                imageFile.CopyTo(fileStream);
+            }
+
+            return "/images/" + randomName; // Return the stored image path
+        }
+
+        private void DeleteImage(string imagePath)
+        {
+            // Construct the absolute path of the image file
+            string absolutePath = "wwwroot" + imagePath;
+
+            FileInfo file = new FileInfo(absolutePath);
+
+            // Check if the image file exists
+            if (file.Exists)
+            {
+                // Delete the image file
+                file.Delete();
+            }
         }
     }
 }

@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\images\y35bszev.ayn_photo_2022-02-19_21-18-21.jpg" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>
